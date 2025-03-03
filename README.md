@@ -130,6 +130,11 @@ Or install from GitHub:
 pip install git+https://github.com/yourusername/cadcad-sandbox.git
 ```
 
+Check out `examples/github_install_example.py` for a complete example that demonstrates:
+- Installing the package from GitHub
+- Using the Python API to run simulations
+- Using the CLI command
+
 ### CLI Usage
 
 After installation, run simulations using the `cadcad-sir` command:

@@ -29,7 +29,8 @@ def main(samples: int, timesteps: int, output: str, experiment: str,
     )
 
     click.echo("Running simulation...")
-    results_df, kpi_summary = sim.run()
+    results_df = sim.get_full_results()
+    kpi_summary = sim.get_kpi_vector()
 
     click.echo("\nSimulation complete! Summary of KPIs:")
     for metric, stats in kpi_summary.items():

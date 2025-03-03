@@ -40,7 +40,16 @@ class SIRSimulation:
         if gamma is not None:
             self.params['gamma'] = gamma
         if population is not None:
+            # Scale initial state proportionally with population
+            scale_factor = population / self.params['population']
             self.params['population'] = population
+            self.initial_state = {
+                'S': default_run_args['initial_state']['S'] * scale_factor,
+                'I': default_run_args['initial_state']['I'] * scale_factor,
+                'R': default_run_args['initial_state']['R'] * scale_factor
+            }
+        else:
+            self.initial_state = dict(default_run_args['initial_state'])
 
     def _run_sim(self) -> pd.DataFrame:
         """
@@ -50,7 +59,7 @@ class SIRSimulation:
             DataFrame with simulation results
         """
         sim_args = (
-            default_run_args['initial_state'],
+            self.initial_state,
             self.params,
             default_run_args['model_blocks'],
             self.timesteps,
