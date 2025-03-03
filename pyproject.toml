@@ -1,0 +1,41 @@
+[project]
+name = "cadcad-sandbox"
+version = "0.1.0"
+description = "A cadCAD project implementing an SIR (Susceptible, Infected, Recovered) epidemic model simulation"
+authors = []
+readme = "README.md"
+requires-python = ">=3.8"
+license = { file = "LICENSE" }
+
+dependencies = [
+    "cadCAD>=0.4.28",
+    "pandas>=2.0.0",
+    "click>=8.0.0",
+    "typing_extensions>=4.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=22.0.0",
+    "isort>=5.0.0",
+    "mypy>=1.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.mypy]
+python_version = "3.8"
+strict = true
+ignore_missing_imports = true
