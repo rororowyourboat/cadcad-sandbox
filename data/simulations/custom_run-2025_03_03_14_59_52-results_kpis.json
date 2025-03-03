@@ -1,0 +1,30 @@
+{
+  "peak_infections": {
+    "mean": 0.0,
+    "std": 0.0,
+    "min": 0.0,
+    "max": 0.0,
+    "median": 0.0
+  },
+  "total_infections": {
+    "mean": 0.0,
+    "std": 0.0,
+    "min": 0.0,
+    "max": 0.0,
+    "median": 0.0
+  },
+  "epidemic_duration": {
+    "mean": 0.0,
+    "std": 0.0,
+    "min": 0.0,
+    "max": 0.0,
+    "median": 0.0
+  },
+  "r0": {
+    "mean": 2.9999999999999996,
+    "std": 0.0,
+    "min": 2.9999999999999996,
+    "max": 2.9999999999999996,
+    "median": 2.9999999999999996
+  }
+}

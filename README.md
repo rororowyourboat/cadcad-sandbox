@@ -1,6 +1,6 @@
 # cadcad-sandbox
 
-A cadCAD project implementing an SIR (Susceptible, Infected, Recovered) epidemic model simulation.
+A cadCAD project implementing an SIR (Susceptible, Infected, Recovered) epidemic model simulation with Monte Carlo capabilities and KPI tracking.
 
 ## Project Structure
 
@@ -16,7 +16,8 @@ cadcad-sandbox/
 │   ├── logic.py        # cadCAD policy wrapper
 │   ├── structure.py    # Model blocks definition
 │   ├── load_data.py    # Data loading utilities
-│   └── experiment.py   # Simulation execution
+│   ├── experiment.py   # Simulation execution
+│   └── kpi.py         # KPI calculations
 ├── data/               # Data directory
 │   └── simulations/    # Simulation results
 ├── requirements.txt    # Project dependencies
@@ -49,26 +50,101 @@ uv venv
 
 4. Install project dependencies:
 ```bash
-uv pip install -r requirements.txt
+uv pip install -e .
 ```
 
-## Usage
+## Package Usage
 
-Run a simulation with default parameters:
+### Basic Simulation
+
+```python
+from model.experiment import SIRSimulation
+
+# Run a single simulation with default parameters
+sim = SIRSimulation(timesteps=100, samples=1)
+results_df, kpi_summary = sim.run()
+
+# Run with custom parameters
+sim = SIRSimulation(
+    timesteps=200,
+    samples=5,
+    beta=0.3,      # transmission rate
+    gamma=0.1,     # recovery rate
+    population=1000
+)
+results_df, kpi_summary = sim.run()
+```
+
+### Monte Carlo Parameter Sweep
+
+```python
+from model.experiment import monte_carlo_sweep
+
+# Define parameter ranges to explore
+param_ranges = {
+    'beta': (0.2, 0.4),
+    'gamma': (0.1, 0.2)
+}
+
+# Run Monte Carlo simulations
+results = monte_carlo_sweep(
+    param_ranges,
+    n_samples=10,         # Monte Carlo runs per parameter set
+    n_timesteps=100,      # Length of each simulation
+    n_parameter_sets=5    # Number of parameter combinations to try
+)
+
+# Results contain KPIs for each parameter set
+for result in results:
+    print(f"Parameters: {result['params']}")
+    print(f"KPIs: {result['kpis']}")
+```
+
+### Key Performance Indicators (KPIs)
+
+The simulation tracks several important KPIs:
+
+1. **Peak Infections**: Maximum number of infected individuals at any point
+2. **Total Infections**: Cumulative number of infections over the simulation
+3. **Epidemic Duration**: Time until active infections drop below threshold
+4. **Basic Reproduction Number (R0)**: Calculated as β/γ
+
+KPI results include summary statistics for each metric:
+- Mean
+- Standard deviation
+- Minimum
+- Maximum
+- Median
+
+## Installation and CLI Usage
+
+### Install via pip
+
+Install from local directory:
 ```bash
-python -m model
+pip install -e .
 ```
 
-Customize simulation parameters:
+Or install from GitHub:
 ```bash
-python -m model --samples 5 --timesteps 200 --experiment "custom_run"
+pip install git+https://github.com/yourusername/cadcad-sandbox.git
 ```
 
-Options:
+### CLI Usage
+
+After installation, run simulations using the `cadcad-sir` command:
+```bash
+cadcad-sir --samples 5 --timesteps 200 --experiment "custom_run"
+```
+
+Available options:
 - `--samples`: Number of simulation samples (default: 1)
 - `--timesteps`: Number of timesteps to simulate (default: 100)
-- `--output`: Output file name (default: results.pkl.gz)
-- `--experiment`: Experiment name for output file (default: simulation)
+- `--output`: Base name for output files (default: results)
+- `--experiment`: Experiment name (default: simulation)
+- `--beta`: Transmission rate (optional)
+- `--gamma`: Recovery rate (optional)
+- `--population`: Total population (optional)
 
 Results are saved in `data/simulations/` with timestamp and experiment name.
 

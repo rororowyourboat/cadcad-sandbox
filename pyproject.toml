@@ -7,12 +7,14 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = { file = "LICENSE" }
 
-dependencies = [
-    "cadCAD>=0.4.28",
-    "pandas>=2.0.0",
-    "click>=8.0.0",
-    "typing_extensions>=4.0.0",
-]
+[project.scripts]
+cadcad-sir = "model.__main__:main"
+
+[project.dependencies]
+cadCAD = ">=0.4.28"
+pandas = ">=2.0.0"
+click = ">=8.0.0"
+typing_extensions = ">=4.0.0"
 
 [project.optional-dependencies]
 dev = [
