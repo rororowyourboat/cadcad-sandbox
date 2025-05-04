@@ -1,10 +1,26 @@
-from typing import Dict, Any, List, Optional, Tuple, Union
+from typing import Dict, Any, List, Optional, Tuple, Union, TypedDict, cast
 import pandas as pd
 import numpy as np
-from cadCAD.tools import easy_run  # type: ignore
+from cadCAD.tools import easy_run
 
-from model import default_run_args
-from model.types import Params
+from model import default_run_args as _default_run_args
+from model.types import Params, SIRState, SIRParams, DefaultRunArgs
+
+# Cast and prepare the imported values
+_model_blocks: List[Any] = cast(List[Any], _default_run_args['model_blocks'])
+_timesteps: int = cast(int, _default_run_args['timesteps'])
+_samples: int = cast(int, _default_run_args['samples'])
+_init_state: SIRState = cast(SIRState, _default_run_args['initial_state'])
+_params: SIRParams = cast(SIRParams, _default_run_args['params'])
+
+# Create properly typed default args
+default_run_args: DefaultRunArgs = {
+    'initial_state': _init_state,
+    'params': _params,
+    'model_blocks': _model_blocks,
+    'timesteps': _timesteps,
+    'samples': _samples
+}
 
 class SIRSimulation:
     """
@@ -33,7 +49,7 @@ class SIRSimulation:
         self.samples = samples
         
         # Use provided parameters or defaults
-        self.params = dict(default_run_args['params'])
+        self.params: SIRParams = cast(SIRParams, dict(default_run_args['params']))
         if beta is not None:
             self.params['beta'] = beta
         if gamma is not None:
@@ -42,13 +58,15 @@ class SIRSimulation:
             # Scale initial state proportionally with population
             scale_factor = population / self.params['population']
             self.params['population'] = population
-            self.initial_state = {
+            # Create a properly typed dictionary for initial state
+            initial_values: Dict[str, float] = {
                 'S': default_run_args['initial_state']['S'] * scale_factor,
                 'I': default_run_args['initial_state']['I'] * scale_factor,
                 'R': default_run_args['initial_state']['R'] * scale_factor
             }
+            self.initial_state = cast(SIRState, initial_values)
         else:
-            self.initial_state = dict(default_run_args['initial_state'])
+            self.initial_state = cast(SIRState, dict(default_run_args['initial_state']))
 
     def run(self) -> pd.DataFrame:
         """

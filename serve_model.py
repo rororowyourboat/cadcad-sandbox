@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic.v1 import BaseModel, Field
 from typing import Dict, Any, Optional, List, TypeVar, Union, Literal
 import json
 from time import time
@@ -17,19 +17,21 @@ app = FastAPI(
 
 # Load metadata on startup
 with open("metadata.json", "r") as f:
-    METADATA = json.load(f)
+    METADATA: Dict[str, Any] = json.load(f)
 
 T = TypeVar('T', bound=BaseModel)
 
 class SimulationParameters(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    class Config:
+        extra = 'forbid'
     
     beta: Optional[float] = Field(None, description="Transmission rate")
     gamma: Optional[float] = Field(None, description="Recovery rate")
     population: Optional[int] = Field(None, description="Total population")
 
 class SimulationConfig(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    class Config:
+        extra = 'forbid'
     
     timesteps: int = Field(
         METADATA["config"]["timesteps"]["default"],
@@ -41,42 +43,46 @@ class SimulationConfig(BaseModel):
     )
 
 class SimulationRequest(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    class Config:
+        extra = 'forbid'
     
     parameters: SimulationParameters
     config: SimulationConfig
 
 class SimulationMetadata(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    class Config:
+        extra = 'forbid'
     
     execution_time: str
     timestamp: str
 
 class SimulationData(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    class Config:
+        extra = 'forbid'
     
     results: List[Dict[str, Any]]
     parameters: Dict[str, Union[float, int, None]]
     config: Dict[str, int]
 
 class SimulationResponse(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    class Config:
+        extra = 'forbid'
     
     success: bool
     data: SimulationData
     metadata: SimulationMetadata
 
-@app.get("/healthcheck")
+@app.get("/healthcheck", response_model=Dict[str, str])
 async def healthcheck() -> Dict[str, str]:
     """Basic health check endpoint."""
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
-@app.get("/metadata")
+@app.get("/metadata", response_model=Dict[str, Any])
 async def get_metadata() -> Dict[str, Any]:
     """Return model metadata including parameters and configuration options."""
     return METADATA
 
-@app.post("/run")
+@app.post("/run", response_model=SimulationResponse)
 async def run_simulation(request: SimulationRequest) -> SimulationResponse:
     """Run a simulation with the specified parameters and configuration."""
     try:
@@ -100,8 +106,8 @@ async def run_simulation(request: SimulationRequest) -> SimulationResponse:
         # Prepare response
         data = SimulationData(
             results=results_dict,
-            parameters=request.parameters.model_dump(exclude_none=True),
-            config=request.config.model_dump(exclude_none=True)
+            parameters=request.parameters.dict(exclude_none=True),
+            config=request.config.dict(exclude_none=True)
         )
 
         metadata = SimulationMetadata(
