@@ -1,29 +1,53 @@
 # cadcad-sandbox
+# Dockerized cadCAD Model
 
-A cadCAD project implementing an SIR (Susceptible, Infected, Recovered) epidemic model simulation with Monte Carlo capabilities and KPI tracking.
+This repository contains a cadCAD model that has been containerized using Docker.
+
+## Prerequisites
+
+- Docker installed on your system
+- Git (for cloning the repository)
+
+## Building the Docker Image
+
+To build the Docker image, run the following command from the root directory of the project:
+
+```bash
+docker build -t cadcad-model .
+```
+
+## Running the Model
+
+To run the model in a container:
+
+```bash
+docker run cadcad-model
+```
+
+### Development
+
+If you want to mount your local code for development:
+
+```bash
+docker run -v ${PWD}/model:/app/model cadcad-model
+```
 
 ## Project Structure
 
-```
-cadcad-sandbox/
-├── model/               # Main simulation code
-│   ├── __init__.py     # Default run configuration
-│   ├── __main__.py     # CLI interface
-│   ├── types.py        # Type definitions
-│   ├── params.py       # Model parameters
-│   ├── helper.py       # Helper functions
-│   ├── core_logic.py   # Core SIR update logic
-│   ├── logic.py        # cadCAD policy wrapper
-│   ├── structure.py    # Model blocks definition
-│   ├── load_data.py    # Data loading utilities
-│   ├── experiment.py   # Simulation execution
-│   └── kpi.py         # KPI calculations
-├── data/               # Data directory
-│   └── simulations/    # Simulation results
-├── requirements.txt    # Project dependencies
-└── pyproject.toml     # Project metadata and configuration
-```
+- `model/` - Contains the cadCAD model implementation
+- `Dockerfile` - Defines the Docker container configuration
+- `requirements.txt` - Python package dependencies
+- `.dockerignore` - Specifies which files should be excluded from the Docker build
 
+## Notes
+
+- The model is built using cadCAD framework
+- Uses uv as the Python package manager
+- Environment variables in the container:
+  - `PYTHONUNBUFFERED=1`: Ensures Python output is sent straight to terminal
+  - `PYTHONDONTWRITEBYTECODE=1`: Prevents Python from writing .pyc files
+
+AjecipmgaSIR(Sa-poib/,Iee   d, R c ve edi ep─ _miy #   l s  ul  swhMnC├─goy  p bia ei.s─aa  KPI   r─ ijg.
 ## Setup with uv
 
 This project uses [uv](https://github.com/astral-sh/uv) as the Python package manager for fast, reliable dependency management. The project configuration is managed through `pyproject.toml`, which defines project metadata, dependencies, and development tools configuration.
@@ -189,4 +213,3 @@ uv Benefits:
 - Faster package installation than pip
 - Built-in virtual environment management
 - Reliable dependency resolution
-- Improved security with lockfile support
