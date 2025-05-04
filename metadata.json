@@ -1,0 +1,43 @@
+{
+  "name": "SIR Model",
+  "parameters": {
+    "beta": {
+      "type": "number",
+      "default": 0.3,
+      "min": 0.0,
+      "max": 1.0,
+      "description": "Transmission rate"
+    },
+    "gamma": {
+      "type": "number",
+      "default": 0.1,
+      "min": 0.0,
+      "max": 1.0,
+      "description": "Recovery rate"
+    },
+    "population": {
+      "type": "integer",
+      "default": 1000,
+      "min": 100,
+      "max": 1000000,
+      "description": "Total population for scaling"
+    }
+  },
+  "state_variables": ["S", "I", "R"],
+  "config": {
+    "timesteps": {
+      "type": "integer",
+      "default": 100,
+      "min": 10,
+      "max": 1000,
+      "description": "Number of timesteps to simulate"
+    },
+    "samples": {
+      "type": "integer",
+      "default": 1,
+      "min": 1,
+      "max": 100,
+      "description": "Number of Monte Carlo samples"
+    }
+  }
+}

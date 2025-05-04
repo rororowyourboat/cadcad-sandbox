@@ -14,9 +14,10 @@ RUN apt-get update && \
 # Add uv to PATH
 ENV PATH="/root/.local/bin:${PATH}"
 
-# Copy requirements and model files
-COPY requirements.txt pyproject.toml ./
+# Copy requirements, model files, and API server
+COPY requirements.txt pyproject.toml metadata.json ./
 COPY model/ ./model/
+COPY serve_model.py .
 
 # Install dependencies
 RUN which uv && \
@@ -26,5 +27,8 @@ RUN which uv && \
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-# Command to run the model
-CMD ["python", "-m", "model"]
+# Expose API port
+EXPOSE 8000
+
+# Command to run the API server
+CMD ["python", "serve_model.py"]

@@ -1,215 +1,164 @@
-# cadcad-sandbox
-# Dockerized cadCAD Model
+# cadCAD Model API
 
-This repository contains a cadCAD model that has been containerized using Docker.
+A REST API wrapper for cadCAD simulation models using FastAPI. This service provides raw simulation results from the SIR (Susceptible, Infected, Recovered) model.
 
-## Prerequisites
-
-- Docker installed on your system
-- Git (for cloning the repository)
-
-## Building the Docker Image
-
-To build the Docker image, run the following command from the root directory of the project:
+## Quick Start
 
 ```bash
+# Build and run with Docker
 docker build -t cadcad-model .
+docker run -p 8000:8000 cadcad-model
 ```
 
-## Running the Model
+## API Documentation
 
-To run the model in a container:
-
-```bash
-docker run cadcad-model
+### 1. Health Check
 ```
-
-### Development
-
-If you want to mount your local code for development:
-
-```bash
-docker run -v ${PWD}/model:/app/model cadcad-model
+GET /healthcheck
 ```
+Returns server status and timestamp.
 
-## Project Structure
-
-- `model/` - Contains the cadCAD model implementation
-- `Dockerfile` - Defines the Docker container configuration
-- `requirements.txt` - Python package dependencies
-- `.dockerignore` - Specifies which files should be excluded from the Docker build
-
-## Notes
-
-- The model is built using cadCAD framework
-- Uses uv as the Python package manager
-- Environment variables in the container:
-  - `PYTHONUNBUFFERED=1`: Ensures Python output is sent straight to terminal
-  - `PYTHONDONTWRITEBYTECODE=1`: Prevents Python from writing .pyc files
-
-AjecipmgaSIR(Sa-poib/,Iee   d, R c ve edi ep─ _miy #   l s  ul  swhMnC├─goy  p bia ei.s─aa  KPI   r─ ijg.
-## Setup with uv
-
-This project uses [uv](https://github.com/astral-sh/uv) as the Python package manager for fast, reliable dependency management. The project configuration is managed through `pyproject.toml`, which defines project metadata, dependencies, and development tools configuration.
-
-1. Install uv if you haven't already:
-```bash
-pip install uv
-```
-
-2. Create a new virtual environment:
-```bash
-uv venv
-```
-
-3. Activate the virtual environment:
-   - On Windows:
-   ```bash
-   .venv\Scripts\activate
-   ```
-   - On macOS/Linux:
-   ```bash
-   source .venv/bin/activate
-   ```
-
-4. Install project dependencies:
-```bash
-uv pip install -e .
-```
-
-## Package Usage
-
-### Basic Simulation
-
-```python
-from model.experiment import SIRSimulation
-
-# Run a single simulation with default parameters
-sim = SIRSimulation(timesteps=100, samples=1)
-results_df, kpi_summary = sim.run()
-
-# Run with custom parameters
-sim = SIRSimulation(
-    timesteps=200,
-    samples=5,
-    beta=0.3,      # transmission rate
-    gamma=0.1,     # recovery rate
-    population=1000
-)
-results_df, kpi_summary = sim.run()
-```
-
-### Monte Carlo Parameter Sweep
-
-```python
-from model.experiment import monte_carlo_sweep
-
-# Define parameter ranges to explore
-param_ranges = {
-    'beta': (0.2, 0.4),
-    'gamma': (0.1, 0.2)
+**Response:**
+```json
+{
+    "status": "healthy",
+    "timestamp": "2025-05-04T21:57:13.754047"
 }
-
-# Run Monte Carlo simulations
-results = monte_carlo_sweep(
-    param_ranges,
-    n_samples=10,         # Monte Carlo runs per parameter set
-    n_timesteps=100,      # Length of each simulation
-    n_parameter_sets=5    # Number of parameter combinations to try
-)
-
-# Results contain KPIs for each parameter set
-for result in results:
-    print(f"Parameters: {result['params']}")
-    print(f"KPIs: {result['kpis']}")
 ```
 
-### Key Performance Indicators (KPIs)
+### 2. Model Metadata
+```
+GET /metadata
+```
+Returns model parameters and configuration options.
 
-The simulation tracks several important KPIs:
-
-1. **Peak Infections**: Maximum number of infected individuals at any point
-2. **Total Infections**: Cumulative number of infections over the simulation
-3. **Epidemic Duration**: Time until active infections drop below threshold
-4. **Basic Reproduction Number (R0)**: Calculated as β/γ
-
-KPI results include summary statistics for each metric:
-- Mean
-- Standard deviation
-- Minimum
-- Maximum
-- Median
-
-## Installation and CLI Usage
-
-### Install via pip
-
-Install from local directory:
-```bash
-pip install -e .
+**Response:**
+```json
+{
+    "name": "SIR Model",
+    "parameters": {
+        "beta": {
+            "type": "number",
+            "default": 0.3,
+            "min": 0.0,
+            "max": 1.0,
+            "description": "Transmission rate"
+        },
+        "gamma": {
+            "type": "number",
+            "default": 0.1,
+            "min": 0.0,
+            "max": 1.0,
+            "description": "Recovery rate"
+        },
+        "population": {
+            "type": "integer",
+            "default": 1000,
+            "min": 100,
+            "max": 1000000,
+            "description": "Total population for scaling"
+        }
+    },
+    "state_variables": ["S", "I", "R"],
+    "config": {
+        "timesteps": {
+            "type": "integer",
+            "default": 100,
+            "min": 10,
+            "max": 1000,
+            "description": "Number of timesteps to simulate"
+        },
+        "samples": {
+            "type": "integer",
+            "default": 1,
+            "min": 1,
+            "max": 100,
+            "description": "Number of Monte Carlo samples"
+        }
+    }
+}
 ```
 
-Or install from GitHub:
-```bash
-pip install git+https://github.com/yourusername/cadcad-sandbox.git
+### 3. Run Simulation
+```
+POST /run
+```
+Executes a model simulation with the specified parameters and configuration.
+
+**Request Body:**
+```json
+{
+    "parameters": {
+        "beta": 0.3,
+        "gamma": 0.1,
+        "population": 1000
+    },
+    "config": {
+        "timesteps": 100,
+        "samples": 1
+    }
+}
 ```
 
-Check out `examples/github_install_example.py` for a complete example that demonstrates:
-- Installing the package from GitHub
-- Using the Python API to run simulations
-- Using the CLI command
-
-### CLI Usage
-
-After installation, run simulations using the `cadcad-sir` command:
-```bash
-cadcad-sir --samples 5 --timesteps 200 --experiment "custom_run"
+**Response:**
+```json
+{
+    "success": true,
+    "data": {
+        "results": [
+            {
+                "timestep": 0,
+                "run": 0,
+                "S": 990.0,
+                "I": 10.0,
+                "R": 0.0
+            },
+            {
+                "timestep": 1,
+                "run": 0,
+                "S": 987.1,
+                "I": 12.7,
+                "R": 0.2
+            }
+        ],
+        "parameters": {
+            "beta": 0.3,
+            "gamma": 0.1,
+            "population": 1000
+        },
+        "config": {
+            "timesteps": 100,
+            "samples": 1
+        }
+    },
+    "metadata": {
+        "execution_time": "0.123s",
+        "timestamp": "2025-05-04T21:57:13.754047"
+    }
+}
 ```
 
-Available options:
-- `--samples`: Number of simulation samples (default: 1)
-- `--timesteps`: Number of timesteps to simulate (default: 100)
-- `--output`: Base name for output files (default: results)
-- `--experiment`: Experiment name (default: simulation)
-- `--beta`: Transmission rate (optional)
-- `--gamma`: Recovery rate (optional)
-- `--population`: Total population (optional)
+## Model Details
 
-Results are saved in `data/simulations/` with timestamp and experiment name.
+### State Variables
+- `S`: Susceptible population
+- `I`: Infected population
+- `R`: Recovered population
 
-## Managing Dependencies with uv
+### Parameters
+- `beta`: Transmission rate
+- `gamma`: Recovery rate
+- `population`: Total population size
 
-- Add a new dependency:
-```bash
-uv pip install package_name
-```
+## Development
 
-- Add a development dependency:
-```bash
-uv pip install --dev package_name
-```
+This project uses:
+- FastAPI for the REST API
+- cadCAD for system modeling
+- uv for Python package management
+- Docker for containerization
 
-- Update dependencies:
-```bash
-uv pip sync requirements.txt
-```
+## Deployment
 
-- Generate requirements.txt from current environment:
-```bash
-uv pip freeze > requirements.txt
-```
-
-- Install development dependencies:
-```bash
-uv pip install -e ".[dev]"
-```
-
-- Install from pyproject.toml:
-```bash
-uv pip install -e .
-```
-
-uv Benefits:
-- Faster package installation than pip
-- Built-in virtual environment management
-- Reliable dependency resolution
+The service is designed to be deployed on Coolify. Set the following environment variables:
+- `PORT`: Port for the FastAPI server (default: 8000)
